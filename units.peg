@@ -1,0 +1,25 @@
+
+start = (skip rule skipl)*
+
+rule = u:unit f:(ws "=" ws formula)? { return  [u, f ? f[3] : null] } 
+
+atom = number / unit
+
+formula = formula_paren / application
+
+formula_paren = "(" skipws f:formula skipws ")" { return f }
+
+application = atom:atom skipws rest:application_rest
+
+application_rest = op:("*" / "/" / "+" / "-") skipws formula skipws application_rest / ""
+
+number = ints:[0-9]+ opt:("." [0-9]+)? { return parseFloat(ints.join('')+(opt !== null ? opt[1].join('') : '')) }
+
+ws = [\t ]+
+newline = [\n\r]+
+skipws = ws*
+skip = (ws / newline)*
+skipl = ws* newline
+
+unit = chars:[a-zA-Z0-9]+ { return chars.join('') }
+
