@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/samvv/unit-convert/issues"
   },
-  "homepage": "https://github.com/samvv/unit-convert#readme"
+  "homepage": "https://github.com/samvv/unit-convert#readme",
+  "dependencies": {
+    "minimist": "^1.2.0"
+  }
 }
