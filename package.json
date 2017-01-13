@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/samvv/unit-convert#readme",
   "dependencies": {
+    "algebra.js": "^0.2.6",
     "graphlib": "^2.1.1",
     "minimist": "^1.2.0"
   },
