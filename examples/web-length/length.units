@@ -1,0 +1,5 @@
+q = mm * 4
+cm = mm / 10
+in = cm / 2.54
+pt = in * 72
+pc = pt / 12
