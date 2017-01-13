@@ -1,43 +1,11 @@
 
-{
-  function pushAll(arr, vals) {
-    if (vals instanceof Array) {
-      for (const val of vals)
-        arr.push(val)
-    } else {
-      arr.push(val)
-    }
-  }
-}
-
 start = rules:(skip rule skipl)* { return rules.map(r => r[1]) }
 
-rule = u:unit f:(ws "=" ws formula)? { return  [u, f ? f[3] : null] } 
+rule = "static" ws unit
+     / formula
 
-atom = number / unit
-
-formula = formula_paren / application
-
-formula_paren = "(" skipws f:formula skipws ")" { return [f] }
-
-application = atom:atom skipws rest:application_rest {
-  const arr = [atom]
-  function descend(rest) {
-    console.log(rest)
-    if (rest) {
-      arr.push(rest.op)
-      pushAll(arr, rest.f)
-      descend(rest.rest)
-    }
-  }
-  descend(rest)
-  return arr
-}
-
-application_rest = application_op / ""
-application_op = op:("*" / "/" / "+" / "-") skipws f:formula skipws rest:application_rest { return { op, f, rest } }
-
-number = ints:[0-9]+ opt:("." [0-9]+)? { return parseFloat(ints.join('')+(opt !== null ? '.'+opt[1].join('') : '')) }
+formula = chars:untilnewline* { return chars.join('') }
+untilnewline = !newline char:. { return char }
 
 ws = [\t ]+
 newline = [\n\r]+

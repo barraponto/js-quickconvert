@@ -1,113 +1,114 @@
 
 const parser = require('./units')
-    , fs = require('fs')
-    , path = require('path')
+    , algebra = require('algebra.js')
+    , { Graph } = require('graphlib')
+    , graphlib = require('graphlib')
+    , _ = require('lodash')
 
-const DEFAULT_OPERATORS = {
-  "+": 1,
-  "-": 2,
-  "*": 3,
-  "/": 4
-}
-
-function push(arr, el) {
-  const newArr = arr.slice()
-  newArr.push(el)
-  return newArr
-}
-
-function shuntingYard(exps, operators = DEFAULT_OPERATORS) {
-  const operatorStack = []
-  const out = []
-  for (const exp of exps.slice().reverse()) {
-    if (operators[exp] === undefined) {
-      out.unshift(exp)
-    } else {
-      const prec1 = operators[exp]
-      while (operatorStack.length > 0) {
-        const o2 = operatorStack[0]
-        const prec2 = operators[o2]
-        if (prec1 < prec2) {
-          out.unshift(o2)
-          operatorStack.pop()
-        } else {
-          break
+function getVariables(ex) {
+  if (ex instanceof algebra.Equation)
+    return getVariables(ex.lhs).concat(getVariables(ex.rhs))
+  else {
+    const res = []
+    function pushVars(ex) {
+      if (ex.terms) {
+        for (const term of ex.terms) {
+          for (const v of term.variables) {
+            res.push(v.variable)
+          }
         }
+      } else {
+        throw new TypeError(`unknown expression`)
       }
-      operatorStack.push(exp)
+    }
+    pushVars(ex)
+    return res
+  }
+}
+
+class Converter {
+
+  constructor() {
+    this.constants = {}
+    this.g = new Graph()
+  }
+
+  addConstant(name, value = true) {
+    this.constants[name] = value
+  }
+
+  isConstant(v) {
+    return this.constants[v] !== undefined
+  }
+
+  parse(content) {
+    const parsed = parser.parse(content)
+    for (const v of parsed.filter(p => typeof p !== 'string')) {
+      this.addConstant(v)
+    }
+    const eqs = parsed
+      .filter(p => typeof p === 'string')
+      .map(p => new algebra.parse(p))
+    for (const eq of eqs) {
+      const vars = getVariables(eq).filter(v => !this.isConstant(v))
+      if (vars.length !== 2)
+        throw new TypeError(`unit formula cannot contain more than two distinct variables`)
+      const [a, b] = vars
+      this.g.setNode(a)
+      this.g.setNode(b)
+      this.g.setEdge(a, b, eq.solveFor(a))
+      this.g.setEdge(b, a, eq.solveFor(b))
     }
   }
-  while (operatorStack.length > 0) 
-    out.unshift(operatorStack.pop())
-  return out
-}
 
-function toAST(exps, operators = DEFAULT_OPERATORS) {
-  function consumeOne() {
-    const exp = exps.shift()
-    if (operators[exp] === undefined) {
-      return exp
-    } else {
-      const a = consumeOne()
-          , b = consumeOne()
-      return [exp, a, b]
+  getPath(a, b) {
+    const path = graphlib.alg.preorder(this.g, a)
+    return path.slice(0, _.indexOf(path, b)+1)
+  }
+
+  canConvert(a, b) {
+    return this.getPath(a,b).length > 0
+  }
+
+  extend(vals) {
+    return 
+  }
+
+  getUnits() {
+    return this.g.nodes()
+  }
+
+  get(a, b) {
+
+    const path = this.getPath(b, a)
+
+    if (path === null)
+      throw new Error(`cannot convert unit ${a} to unit ${b}`)
+
+    let eq
+    eq = this.g.edge(path[0], path[1])
+    let src = path[1]
+    for (const dest of path.slice(2)) {
+      const eq2 = this.g.edge(src,dest)
+      eq = eq.eval({ [dest]: eq2 })
+      src = dest
     }
+
+    //const f = (val) => {
+      //let res = val
+      //let src = a
+      //for (const dest of path.slice(1)) {
+        //const solver = this.g.edge(src, dest)
+        //res = solver.eval(_.defaults({ [src]: res }, this.constants))
+        //src = dest
+      //}
+      //return res
+    //}
+
+    return eq
   }
-  return consumeOne()
+
 }
 
-function forEach(ast, proc, operators = DEFAULT_OPERATORS, path = []) {
-  if (ast instanceof Array) {
-    const [op, a, b] = ast
-    const nextp = 
-    forEach(a, proc, operators, push(path, 1))
-    forEach(b, proc, operators, push(path, 2))
-  } else {
-    proc(ast, path)
-  }
-}
-
-function forEachUnit(ast, proc, operators = DEFAULT_OPERATORS) {
-  forEach(ast, (leaf, path) => {
-    if (operators[leaf] === undefined && isNaN(parseFloat(leaf)))
-      proc(leaf, path)
-  })
-}
-
-function getPaths(rules) {
-  const paths = {}
-  for (const rule of rules) {
-    forEachUnit(rule, (unit, path) => {
-      if (paths[unit] === undefined)
-        paths[unit] = []
-      const fullpath = path.slice()
-      fullpath.unshift(rule)
-      paths[unit].push(fullpath)
-    })
-  }
-  return paths
-}
-
-function getGraph(rules) {
-  const edges = []
-  const paths = getPaths(rules)
-  for (const unit of Object.keys(paths)) {
-    const unitPaths = paths[unit]
-    for (const path of unitPaths) {
-      const [rule, ...indices] = path
-      edges.push([unit, rule[1], indices])
-    }
-  }
-  return edges
-}
-
-function analyse(content, rules = []) {
-  const parsed = parser.parse(content)
-  parsed.forEach(rule => {
-    rules.push(["=", rule[0], toAST(shuntingYard(rule[1]))])
-  })
-  return rules
-}
-
-module.exports = { shuntingYard, analyse, getGraph }
+module.exports = { Converter, getVariables }
 
