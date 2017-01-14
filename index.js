@@ -56,22 +56,32 @@ class Converter {
       const [a, b] = vars
       this.g.setNode(a)
       this.g.setNode(b)
-      this.g.setEdge(a, b, eq.solveFor(a))
-      this.g.setEdge(b, a, eq.solveFor(b))
+      this.g.setEdge(a, b, eq.solveFor(b))
+      this.g.setEdge(b, a, eq.solveFor(a))
     }
+
+    this.dijkstra = graphlib.alg.dijkstraAll(this.g)
+    //if (this.dijkstra === undefined)
+      //throw new TypeError(`could not link each unit to another`)
   }
 
   getPath(a, b) {
-    const path = graphlib.alg.preorder(this.g, a)
-    return path.slice(0, _.indexOf(path, b)+1)
+    const path = []
+    const dijkstra = this.dijkstra[a]
+    let curr = b
+    while (true) {
+      const { predecessor, distance } = dijkstra[curr]
+      path.unshift(curr)
+      if (predecessor === undefined)
+        break
+      else
+        curr = predecessor
+    }
+    return path
   }
 
   canConvert(a, b) {
     return this.getPath(a,b).length > 0
-  }
-
-  extend(vals) {
-    return 
   }
 
   getUnits() {
@@ -84,13 +94,13 @@ class Converter {
 
     if (path === null)
       throw new Error(`cannot convert unit ${a} to unit ${b}`)
-
+    
     let eq
-    eq = this.g.edge(path[0], path[1])
-    let src = path[1]
-    for (const dest of path.slice(2)) {
-      const eq2 = this.g.edge(src,dest)
-      eq = eq.eval({ [dest]: eq2 })
+    eq = new algebra.Expression(path[0])
+    let src = path[0]
+    for (const dest of path.slice(1)) {
+      const eq2 = this.g.edge(src, dest)
+      eq = eq.eval({ [src]: eq2 })
       src = dest
     }
 
