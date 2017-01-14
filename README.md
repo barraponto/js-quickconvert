@@ -39,6 +39,15 @@ l.mm = 5
 const l2 = new Length('5px') // works
 ```
 
+## CLI Usage
+
+```
+quickconvert [--name <name>] file ... 
+```
+
+ - **name**: the name of the JavaScript class. If none is defined, will be
+   derived from the name of the file.
+
 ## API Reference
 
 This section contains a reference of the generated API. `Unit` stands for the
