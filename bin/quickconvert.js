@@ -51,12 +51,20 @@ class ${name} {
     return new ${name} (a.value - b[a.type], a.type)
   }
 
+  static neg(a) {
+    return new ${name}(-this.value, this.type)
+  }
+
   add(other) {
     this.value += other[this.type]
   }
 
   sub(other) {
     this.value -= other[this.type]
+  }
+
+  neg() {
+    this.value = -this.value
   }
 
   constructor(unit, type) {
