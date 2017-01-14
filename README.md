@@ -56,7 +56,7 @@ definitions file.
 
 ### new Unit()
 
-Creates a new uninitialezed unit.
+Creates a new uninitialized unit.
 
 ### new Unit(str)
 
