@@ -3,11 +3,13 @@ const { expect } = require('chai')
 const Angle = require('./angle')
 
 describe('an angle', () => {
-  
+
   it('can do some conversions', () => {
     const a = new Angle()
     a.deg = 180
     expect(a.rad).to.equal(Math.PI)
+    a.deg = 180
+    expect(a.grad).to.equal(200)
     a.turn = 1
     expect(a.deg).to.equal(360)
   })
