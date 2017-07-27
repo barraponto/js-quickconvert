@@ -11,7 +11,7 @@ npm i -g quickconvert
 Say we have the following units which are taken from
 [this page](https://developer.mozilla.org/en-US/docs/Web/CSS/length).
 
-**angle.units**
+**length.units**
 ```ts
 q = mm * 4
 cm = mm / 10
@@ -25,7 +25,7 @@ These are all simple linear equations, following standard JavaScript syntax.
 Run quickconvert in a terminal:
 
 ```
-quickconvert angle.units > angle.js
+quickconvert length.units > length.js
 ```
 
 Now use it:
