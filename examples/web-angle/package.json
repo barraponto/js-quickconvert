@@ -4,6 +4,7 @@
   "description": "A representation and unit conversion tool for CSS angles",
   "main": "angle.js",
   "scripts": {
+    "build": "quickconvert angle.units > angle.js",
     "test": "mocha"
   },
   "repository": {
@@ -24,5 +25,9 @@
   "bugs": {
     "url": "https://github.com/samvv/quickconvert/issues"
   },
-  "homepage": "https://github.com/samvv/quickconvert#readme"
+  "homepage": "https://github.com/samvv/quickconvert#readme",
+  "devDependencies": {
+    "mocha": "^3.4.2",
+    "quickconvert": "^1.0.2"
+  }
 }
